@@ -3,6 +3,7 @@ import express, { Application, Request, Response } from 'express';
 import bodyParser from 'body-parser';
 import cors from 'cors';
 import { sequelize } from './config/database';
+import * as modeles from './models/index'
 
 const app: Application = express();
 
@@ -20,7 +21,9 @@ const start = async (): Promise<void> => {
   try {
     await sequelize.authenticate();
     console.log('Connection has been established successfully.');
-    await sequelize.sync();
+    modeles
+    // Синхронизация моделей с базой данных
+    await sequelize.sync({ force: true });
     console.log("All models were synchronized successfully.");
   } catch (err) {
     console.error('Unable to connect to the database:', err);
