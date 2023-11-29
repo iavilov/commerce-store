@@ -1,31 +1,27 @@
 import bcrypt from 'bcrypt';
 import { NextFunction, Request, Response } from 'express';
-import jwt from 'jsonwebtoken';
-import User from '../models/User';
-
+import ApiError from '../error/ApiError';
+import { Basket, User } from '../models';
+import { generateJwt, verifyJwt } from '../utils/JwtAuthorization';
 
 class UserController {
   async registration(req: Request, res: Response, next: NextFunction) {
     try {
-      const { email, password } = req.body;
+      const { email, password, role } = req.body;
       if (!email || !password) {
-        return next(new Error('Email and password are required'));
+        return next(ApiError.badRequest('Email and password are required'));
       }
 
       const candidate = await User.findOne({ where: { email } });
       if (candidate) {
-        return next(new Error('User with this email already exists'));
+        return next(ApiError.badRequest('User with this email already exists'));
       }
 
       const hashPassword = await bcrypt.hash(password, 5);
-      const user = await User.create({ email, password: hashPassword });
+      const user = await User.create({ email, password: hashPassword, role });
+      const basket = await Basket.create({ userId: user.id });
 
-      const jwtSecret = process.env.JWT_SECRET;
-      if (!jwtSecret) {
-        return next(new Error('JWT secret is not defined'));
-      }
-
-      const token = jwt.sign({ id: user.id, email: user.email }, jwtSecret, { expiresIn: '24h' });
+      const token = generateJwt(user.id, user.email, user.role, next)
       return res.json({ token });
     } catch (error) {
       return next(error);
@@ -38,20 +34,15 @@ class UserController {
       const { email, password } = req.body;
       const user = await User.findOne({ where: { email } });
       if (!user) {
-        return next(new Error('User not found'));
+        return next(ApiError.internal('User not found'));
       }
 
       const isPassValid = bcrypt.compareSync(password, user.password);
       if (!isPassValid) {
-        return next(new Error('Invalid password'));
+        return next(ApiError.internal('Invalid password'));
       }
 
-      const jwtSecret = process.env.JWT_SECRET;
-      if (!jwtSecret) {
-        return next(new Error('JWT secret is not defined'));
-      }
-
-      const token = jwt.sign({ id: user.id, email: user.email }, jwtSecret, { expiresIn: '24h' });
+      const token = generateJwt(user.id, user.email, user.role, next)
       return res.json({ token });
     } catch (error) {
       return next(error);
@@ -60,25 +51,18 @@ class UserController {
 
 
   async check(req: Request, res: Response, next: NextFunction) {
-    const token = req.headers.authorization?.split(' ')[1];
-    if (!token) {
-      return res.status(401).json({ message: 'Unauthorized' });
-    }
-
-    const jwtSecret = process.env.JWT_SECRET;
-    if (!jwtSecret) {
-      return next(new Error('JWT secret is not defined'));
-    }
-
     try {
-      const decoded = jwt.verify(token, jwtSecret);
+      const token = req.headers.authorization?.split(' ')[1];
+      if (!token) {
+        return next(ApiError.unauthorized('Unauthorized'));
+      }
+
+      const decoded = verifyJwt(token, next);
       res.json(decoded);
     } catch (error) {
-      return next(new Error('Invalid token'));
+      return next(error);
     }
   }
-
-
 }
 
 export default new UserController();

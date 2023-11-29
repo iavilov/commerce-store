@@ -5,7 +5,7 @@ import express, { Application } from 'express';
 import fileUpload from 'express-fileupload';
 import { initializeDatabase } from './config/databaseInitialization';
 import router from './routes';
-import errorHandler from './error/ErrorHandlingMiddleware'
+import errorHandler from './middleware/ErrorHandlingMiddleware'
 import path from 'path';
 
 const app: Application = express();
