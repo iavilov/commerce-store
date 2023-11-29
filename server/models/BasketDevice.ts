@@ -13,7 +13,7 @@ BasketDevice.init({
   id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
 }, {
   sequelize,
-  modelName: 'basketDevice'
+  modelName: 'basket_device'
 });
 
 export default BasketDevice;

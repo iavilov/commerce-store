@@ -13,7 +13,7 @@ TypeBrand.init({
   id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
 }, {
   sequelize,
-  modelName: 'typeBrand'
+  modelName: 'type_brand'
 });
 
 export default TypeBrand;

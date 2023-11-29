@@ -9,10 +9,6 @@ import Rating from './Rating'
 import DeviceInfo from './DeviceInfo'
 import TypeBrand from './TypeBrand'
 
-sequelize.sync({ force: true }).then(() => {
-  console.log("Database & tables created!");
-});
-
 User.hasOne(Basket)
 Basket.belongsTo(User)
 

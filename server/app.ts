@@ -1,37 +1,34 @@
-import 'dotenv/config';
-import express, { Application, Request, Response } from 'express';
 import bodyParser from 'body-parser';
 import cors from 'cors';
-import { sequelize } from './config/database';
-import * as modeles from './models/index'
+import 'dotenv/config';
+import express, { Application } from 'express';
+import fileUpload from 'express-fileupload';
+import { initializeDatabase } from './config/databaseInitialization';
+import router from './routes';
+import errorHandler from './error/ErrorHandlingMiddleware'
+import path from 'path';
 
 const app: Application = express();
-
 const PORT: number | string = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(bodyParser.json());
+app.use(fileUpload({}));
+app.use(express.static(path.resolve(__dirname, 'static')))
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use('/api', router);
 
-app.get('/', (req: Request, res: Response) => {
-  res.status(200).json({ message: 'Working!' });
-});
+app.use(errorHandler)
 
-const start = async (): Promise<void> => {
+const startServer = async (): Promise<void> => {
   try {
-    await sequelize.authenticate();
-    console.log('Connection has been established successfully.');
-    modeles
-    // Синхронизация моделей с базой данных
-    await sequelize.sync({ force: true });
-    console.log("All models were synchronized successfully.");
+    await initializeDatabase();
+    app.listen(PORT, () => {
+      console.log(`Server is running on port ${PORT}.`);
+    });
   } catch (err) {
-    console.error('Unable to connect to the database:', err);
+    console.error('Unable to start the server:', err);
   }
-}
+};
 
-start();
-
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}.`);
-});
+startServer();
