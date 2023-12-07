@@ -1,14 +1,13 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Admin',
-  description: 'Admin page',
+  title: 'Login1',
+  description: 'Login page',
 };
-
 
 const Page = () => {
   return (
-    <p>Admin page</p>
+    <p>Login page</p>
   );
 };
 

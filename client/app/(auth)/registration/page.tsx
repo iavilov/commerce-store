@@ -1,6 +1,6 @@
 const Page = () => {
   return (
-    <p>Auth page</p>
+    <p>Registration page</p>
   );
 };
 
