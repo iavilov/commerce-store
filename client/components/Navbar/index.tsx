@@ -1,37 +1,19 @@
 'use client'
-import { Disclosure, Menu, Transition, Switch } from '@headlessui/react'
-import { Bars3Icon, BellIcon, XMarkIcon } from '@heroicons/react/24/outline'
-import { Fragment, useState } from 'react'
+import { User } from '@/lib/dummyDatas';
+import { ROUTES } from '@/lib/routes';
+import { useAuth } from '@/store/useAuth';
+import { Disclosure, Menu, Transition } from '@headlessui/react';
+import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
 import clsx from 'clsx';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { Fragment } from 'react';
+
+const userNavigation = [
+  { name: 'Admin', href: ROUTES.ADMIN },
+]
 
 const Navbar = () => {
-
-  const navigation = [
-    { name: 'Admin', href: '/admin' },
-    { name: 'Device', href: '/device' },
-    { name: 'Products', href: '/products' },
-    { name: 'Login', href: '/login' },
-    { name: 'Registration', href: '/registration' },
-  ]
-
-  const userNavigation = [
-    { name: 'Your Profile', href: '#' },
-    { name: 'Settings', href: '#' },
-    { name: 'Sign out', href: '#' },
-  ]
-
-  const user = {
-    name: 'Tom Cook',
-    email: 'tom@example.com',
-    imageUrl:
-      'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
-  }
-
-  const [enabled, setEnabled] = useState(false)
-
-  const pathname = usePathname()
+  const { onAuth, setOnAuth } = useAuth();
 
   return (
     <Disclosure as="nav" className="border-b border-gray-200 bg-white">
@@ -39,7 +21,8 @@ const Navbar = () => {
         <>
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="flex h-16 justify-between">
-              <div className="flex">
+              <div className="flex justify-between w-full">
+
                 <div className="flex flex-shrink-0 items-center">
                   <Link href="/">
                     <img
@@ -56,39 +39,26 @@ const Navbar = () => {
                     />
                   </Link>
                 </div>
-                <div className="hidden sm:-my-px sm:ml-6 sm:flex sm:space-x-8">
-                  {navigation.map((item) => {
-                    const isActive = pathname.startsWith(item.href)
-                    return (
-                      <Link
-                        key={item.name}
-                        href={item.href}
-                        className={`inline-flex items-center border-b-2 px-1 pt-1 text-sm font-medium ${isActive ? 'border-indigo-500 text-gray-900' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'}`}
-                        aria-current={isActive}
-                      >
-                        {item.name}
-                      </Link>
-                    )
-                  })}
-                </div>
+                {!onAuth &&
+                  <div className="hidden sm:-my-px sm:ml-6 sm:flex sm:justify-end sm:space-x-8">
+                    <Link
+                      href={'/'}
+                      onClick={() => setOnAuth(true)}
+                      className={`inline-flex items-center border-b-2 px-1 pt-1 text-sm font-medium border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700`}
+                    >
+                      Login
+                    </Link>
+                  </div>}
               </div>
-              <div className="hidden sm:ml-6 sm:flex sm:items-center">
-                <button
-                  type="button"
-                  className="relative rounded-full bg-white p-1 text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                >
-                  <span className="absolute -inset-1.5" />
-                  <span className="sr-only">View notifications</span>
-                  <BellIcon className="h-6 w-6" aria-hidden="true" />
-                </button>
 
-                {/* Profile dropdown */}
+
+              {onAuth && <div className="hidden sm:ml-6 sm:flex sm:items-center">
                 <Menu as="div" className="relative ml-3">
                   <div>
                     <Menu.Button className="relative flex max-w-xs items-center rounded-full bg-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
                       <span className="absolute -inset-1.5" />
                       <span className="sr-only">Open user menu</span>
-                      <img className="h-8 w-8 rounded-full" src={user.imageUrl} alt="" />
+                      <img className="h-8 w-8 rounded-full" src={User.imageUrl} alt="" />
                     </Menu.Button>
                   </div>
                   <Transition
@@ -101,27 +71,40 @@ const Navbar = () => {
                     leaveTo="transform opacity-0 scale-95"
                   >
                     <Menu.Items className="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
-                      {userNavigation.map((item) => (
-                        <Menu.Item key={item.name}>
+                      <>
+                        {userNavigation.map((item) => (
+                          <Menu.Item key={item.name}>
+                            {({ active }) => (
+                              <Link
+                                href={item.href}
+                                className={clsx(
+                                  active && 'bg-gray-100',
+                                  'block px-4 py-2 text-sm text-gray-700'
+                                )}
+                              >
+                                {item.name}
+                              </Link>
+                            )}
+                          </Menu.Item>
+                        ))}
+                        <Menu.Item>
                           {({ active }) => (
-                            <a
-                              href={item.href}
-                              className={clsx(
-                                active && 'bg-gray-100',
-                                'block px-4 py-2 text-sm text-gray-700'
-                              )}
+                            <Link
+                              href={ROUTES.LOGIN}
+                              onClick={() => setOnAuth(false)}
+                              className={`block px-4 py-2 text-sm text-gray-700 ${active && 'bg-gray-100'}`}
                             >
-                              {item.name}
-                            </a>
+                              Logout
+                            </Link>
                           )}
                         </Menu.Item>
-                      ))}
+                      </>
                     </Menu.Items>
                   </Transition>
                 </Menu>
-              </div>
+              </div>}
+
               <div className="-mr-2 flex items-center sm:hidden">
-                {/* Mobile menu button */}
                 <Disclosure.Button className="relative inline-flex items-center justify-center rounded-md bg-white p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
                   <span className="absolute -inset-0.5" />
                   <span className="sr-only">Open main menu</span>
@@ -136,55 +119,48 @@ const Navbar = () => {
           </div>
 
           <Disclosure.Panel className="sm:hidden">
-            <div className="space-y-1 pb-3 pt-2">
-              {navigation.map((item) => (
-                <Disclosure.Button
-                  key={item.name}
-                  as="a"
-                  href={item.href}
-                  className={clsx(
-                    item.current
-                      ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
-                      : 'border-transparent text-gray-600 hover:border-gray-300 hover:bg-gray-50 hover:text-gray-800',
-                    'block border-l-4 py-2 pl-3 pr-4 text-base font-medium'
-                  )}
-                  aria-current={item.current ? 'page' : undefined}
+            {!onAuth &&
+              <div className="space-y-1 pb-3 pt-2">
+                <Link
+                  href={ROUTES.MAIN}
+                  className={`block border-l-4 py-2 pl-3 pr-4 text-base font-medium border-transparent text-gray-600 hover:border-gray-300 hover:bg-gray-50 hover:text-gray-800`}
                 >
-                  {item.name}
-                </Disclosure.Button>
-              ))}
-            </div>
-            <div className="border-t border-gray-200 pb-3 pt-4">
-              <div className="flex items-center px-4">
-                <div className="flex-shrink-0">
-                  <img className="h-10 w-10 rounded-full" src={user.imageUrl} alt="" />
+                  Login
+                </Link>
+              </div>}
+
+            {onAuth &&
+              <div className="border-t border-gray-200 pb-3 pt-4">
+                <div className="flex items-center px-4">
+                  <div className="flex-shrink-0">
+                    <img className="h-10 w-10 rounded-full" src={User.imageUrl} alt="" />
+                  </div>
+                  <div className="ml-3">
+                    <div className="text-base font-medium text-gray-800">{User.name}</div>
+                    <div className="text-sm font-medium text-gray-500">{User.email}</div>
+                  </div>
+
                 </div>
-                <div className="ml-3">
-                  <div className="text-base font-medium text-gray-800">{user.name}</div>
-                  <div className="text-sm font-medium text-gray-500">{user.email}</div>
-                </div>
-                <button
-                  type="button"
-                  className="relative ml-auto flex-shrink-0 rounded-full bg-white p-1 text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                >
-                  <span className="absolute -inset-1.5" />
-                  <span className="sr-only">View notifications</span>
-                  <BellIcon className="h-6 w-6" aria-hidden="true" />
-                </button>
-              </div>
-              <div className="mt-3 space-y-1">
-                {userNavigation.map((item) => (
-                  <Disclosure.Button
-                    key={item.name}
-                    as="a"
-                    href={item.href}
+                <div className="mt-3 space-y-1">
+                  {userNavigation.map((item) => (
+                    <Link
+                      key={item.name}
+                      onClick={() => { }}
+                      href={item.href}
+                      className="block px-4 py-2 text-base font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-800"
+                    >
+                      {item.name}
+                    </Link>
+                  ))}
+                  <Link
+                    onClick={() => setOnAuth(false)}
+                    href={ROUTES.LOGIN}
                     className="block px-4 py-2 text-base font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-800"
                   >
-                    {item.name}
-                  </Disclosure.Button>
-                ))}
-              </div>
-            </div>
+                    Logout
+                  </Link>
+                </div>
+              </div>}
           </Disclosure.Panel>
         </>
       )}
